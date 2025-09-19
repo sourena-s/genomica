@@ -1,0 +1,5 @@
+low_confidence_{pop}: Boolean flag indicating low confidence for pop based on the following heuristics:
+
+Alternate allele count in cases <= 3
+Alternate allele count in controls <= 3
+Minor allele count (cases and controls combined) <= 20
