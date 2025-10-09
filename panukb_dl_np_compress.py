@@ -23,5 +23,5 @@ with h5py.File(output_file, "w") as f:
     f.create_dataset("data", data=data, compression="gzip", compression_opts=9)
 
 with open(log_file, "w") as log:
-    log.write(f"file {output_file} shape {data.shape} nan {num_nan} mean {mean_val:.4f} sd {std_val:.4f} \n")
+    log.write(f"file {output_file} shape {data.shape} , nan count  {num_nan} {(num_nan/data.shape[0])*100:.2f}%, mean {mean_val:.4f} sd {std_val:.4f} \n")
 

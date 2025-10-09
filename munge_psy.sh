@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
+#module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
+
 ldsc_bin=/home/ssoheili/software/ldsc/ldsc.py
 munge_bin=/home/ssoheili/software/ldsc/munge_sumstats.py
 base_dir=/home/ssoheili/genetic-data/genica/gwas-databases/PSY
 ref_path=/home/ssoheili/genetic-data/genica/software/ldsc/ref
 
-for trait in ASD ADDICTION ANX BIP OCD MDD ADHD SCZ ;do
+info_str="--info impinfo" 
+
+for trait in PTSD ASD ADDICTION ANX BIP OCD MDD ADHD SCZ;do
+for trait in PTSD ;do
 
 case "$trait" in
 	"ADDICTION") n_str="--N 1025550"
@@ -14,20 +18,26 @@ case "$trait" in
 		;;
 	"ASD")  n_str="--N-cas 18382 --N-con 27969"
 		;;
+	"PTSD") n_str="--N-col n"
+		info_str=""
+		;;
+
 	*) n_str="--N-cas-col ncas --N-con-col ncon"
 		;;
 esac
 
 	
- $munge_bin --sumstats "$base_dir/$trait/gwas.matched" $n_str --merge-alleles ${ref_path}/w_hm3.snplist --info impinfo --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat matched_beta,0 --a1-inc --out "$base_dir/$trait/gwas.matched.ldsc"
+$munge_bin --sumstats "$base_dir/$trait/gwas.matched" $n_str $info_str --p p --snp rsid --signed-sumstat matched_beta,0 --a1-inc --out "$base_dir/$trait/gwas.matched.ldsc" --merge-alleles ${ref_path}/w_hm3.snplist  --a1 a1 --a2 a0 --chunksize 10000
 
+## $ldsc_bin --h2 $base_dir/$trait/gwas.matched.ldsc.sumstats.gz --ref-ld-chr $ref_path/1000GP/baselineLD. --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. --out $base_dir/$trait/gwas.matched.h2.1000GP
+$ldsc_bin --h2 $base_dir/$trait/gwas.matched.ldsc.sumstats.gz --ref-ld $ref_path/ukbb/UKBB.EUR.rsid --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. --out $base_dir/$trait/gwas.matched.h2.UKB
+
+##$ldsc_bin --h2 ~/genetic-data/genica/gwas-databases/PSY/BIP/gwas.matched.ldsc.sumstats.gz --ref-ld $ref_path/ukbb/UKBB.EUR.rsid --out test --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. --out test
 ###$ldsc_bin --h2 "$base_dir/$trait/gwas.matched.ldsc" --ref-ld $ref_path/UKBB.EUR.rsid --out $base_dir/$trait/gwas.matched.h2
 	##--w-ld $ref_path/eur_w_ld_chr/ \
 	##--overlap-annot UKBB.EUR.25LDMS \
 
 
-##$ldsc_bin --h2 ~/genetic-data/genica/gwas-databases/PSY/ANX/gwas.matched.ldsc.sumstats.gz --ref-ld-chr $ref_path/1000GP/baselineLD. --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. --out test
 
-##$ldsc_bin --h2 ~/genetic-data/genica/gwas-databases/PSY/BIP/gwas.matched.ldsc.sumstats.gz --ref-ld $ref_path/ukbb/UKBB.EUR.rsid --out test --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. --out test
 
 done

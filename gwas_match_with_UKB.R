@@ -18,6 +18,8 @@ gwas_list <- c(
 gwas_list <- c(
 	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ADDICTION/Hatoum2023AddictionEuropean' )
 
+gwas_list <- c(
+	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/PTSD/Nievergelt2024/eur_ptsd_pcs_v4_aug3_2021')
 
 for (gwas_filepath in gwas_list) {
 

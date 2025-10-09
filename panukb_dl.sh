@@ -27,7 +27,7 @@ process_url() {
 python_bin=python3 # which python? use anaconda?
 dl_path=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/sumstats
 var_catalogue=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted
-var_catalogue_rsid=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid
+var_catalogue_rsid=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid.txt
 if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
 
     url=$1
@@ -50,6 +50,7 @@ if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
     cat "$dl_path/gwas_meta/${mat_file}.sorted" |cut -d$'\t' -f1 > "$dl_path/gwas_meta/${mat_file}.sorted.vars"
 
 populations=("meta" "meta_hq" "AFR" "CSA" "AMR" "EAS" "EUR" "MID")
+populations=("EUR")
 
 for pop in "${populations[@]}"; do
     beta_name="beta_$pop"
@@ -83,7 +84,7 @@ for pop in "${populations[@]}"; do
         ' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.z.$pop"
 
 	if [[ "$pop" == "EUR" ]];then 
-	####run ldsc munge and calculate corr with PSYCH
+	####run ldsc munge and calculate corr with PSY
 	echo "Processing $pop: eur_p_col=$eur_p_col +1"
 	awk -F' ' -v p=$((eur_p_col+1)) 'NR>1 {print $p}' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.p.$pop"
 
@@ -98,27 +99,32 @@ for pop in "${populations[@]}"; do
 	
 	if [[ $ncontrols == "NA" ]];then n_str="--N $ncases";else n_str="--N-cas $ncases --N-con $ncontrols";fi
 	
-	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --a1-inc --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
+	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 10000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --a1-inc --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
 
 	echo "Checking if munged sumstat file exists:"
 	ls $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 	echo "Proceeding to rG estimation.."
-	psy_gwases=$(for psy in ANX BIP MDD ADHD SCZ OCD ASD;do echo -n ",${psy_path}/$psy/gwas.matched.ldsc.sumstats.gz";done)
-
+	psy_gwases=$(for psy in ADDICTION ASD ANX BIP MDD ADHD SCZ OCD PTSD;do echo -n ",${psy_path}/$psy/gwas.matched.ldsc.sumstats.gz";done)
+	
 	$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/baselineLD. \
                 --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
                 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
 
+        awk -vs=$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz '$1==s' $dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr.log | sed 's/.EUR.ldsc.sumstats.gz//g' > $dl_path/$pop/${mat_file}.${pop}.psy_rg
+
+	awk '{print $3}' $dl_path/$pop/${mat_file}.${pop}.psy_rg > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	awk '{print $5}' $dl_path/$pop/${mat_file}.${pop}.psy_rg > $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
 	fi
 
 	#Save z as h5
-#    $python_bin /home/ssoheili/genomica-code/panukb_dl_np_compress.py "$dl_path/$pop/${mat_file}.z.$pop"
+    $python_bin /home/ssoheili/genomica-code/panukb_dl_np_compress.py "$dl_path/$pop/${mat_file}.z.$pop"
     
-#    rm -rf  $dl_path/$pop/${mat_file}.z.$pop
+    rm -rf $dl_path/$pop/${mat_file}.z.$pop $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 
     fi
 done
 rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
+	$dl_path/gwas_meta/${mat_file}.sorted.vars \
 	$dl_path/gwas_meta/${mat_file}.dl \
 	$dl_path/gwas_meta/${mat_file}.ref \
 	$dl_path/gwas_meta/${mat_file}.orig 
