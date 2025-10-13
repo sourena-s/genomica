@@ -74,7 +74,7 @@ for pop in "${populations[@]}"; do
 
         echo "Processing $pop: beta_col=$beta_col +1, se_col=$se_col +1 and var QC awk argument $lowconf_opt"
 	awk -F' ' -v b=$((beta_col+1)) -v s=$((se_col+1)) $lowconf_opt '
-	NR>1 { cond=($s>0 && $s!="NA" && $b!="NA")
+	{ cond=($s>0 && $s!="NA" && $b!="NA")
 	if (lowconf!="") cond=(cond && ($lowconf!="true"))
 		if (cond) {
                     z = $b/$s
@@ -86,7 +86,7 @@ for pop in "${populations[@]}"; do
 	if [[ "$pop" == "EUR" ]];then 
 	####run ldsc munge and calculate corr with PSY
 	echo "Processing $pop: eur_p_col=$eur_p_col +1"
-	awk -F' ' -v p=$((eur_p_col+1)) 'NR>1 {print $p}' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.p.$pop"
+	awk -F' ' -v p=$((eur_p_col+1)) '{print $p}' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.p.$pop"
 
 	echo "Munging $dl_path/$pop/${mat_file}.z.$pop and variant file $dl_path/gwas_meta/${mat_file}.sorted.vars"
 	echo "chr pos a0 a1 rsid z p" > "$dl_path/$pop/${mat_file}.${pop}.tomunge"
@@ -104,7 +104,8 @@ for pop in "${populations[@]}"; do
 	echo "Checking if munged sumstat file exists:"
 	ls $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 	echo "Proceeding to rG estimation.."
-	psy_gwases=$(for psy in ADDICTION ASD ANX BIP MDD ADHD SCZ OCD PTSD;do echo -n ",${psy_path}/$psy/gwas.matched.ldsc.sumstats.gz";done)
+	psy_array=("ASD" "ANX" "BIP" "MDD" "ADHD" "SCZ" "OCD" "PTSD" "ADDICTION" )
+	psy_gwases=$(for psy in "${psy_array[@]}";do echo -n ",${psy_path}/$psy/gwas.matched.ldsc.sumstats.gz";done)
 	
 	$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/baselineLD. \
                 --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
@@ -112,22 +113,23 @@ for pop in "${populations[@]}"; do
 
         awk -vs=$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz '$1==s' $dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr.log | sed 's/.EUR.ldsc.sumstats.gz//g' > $dl_path/$pop/${mat_file}.${pop}.psy_rg
 
-	awk '{print $3}' $dl_path/$pop/${mat_file}.${pop}.psy_rg > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
-	awk '{print $5}' $dl_path/$pop/${mat_file}.${pop}.psy_rg > $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
+	awk '{printf "%s ", $3} END {print ""}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " "  > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	echo "${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
+	awk '{printf "%s ", $5} END {print ""}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " " >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
 	fi
 
 	#Save z as h5
     $python_bin /home/ssoheili/genomica-code/panukb_dl_np_compress.py "$dl_path/$pop/${mat_file}.z.$pop"
     
-    rm -rf $dl_path/$pop/${mat_file}.z.$pop $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
+  ##  rm -rf $dl_path/$pop/${mat_file}.z.$pop $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 
     fi
 done
-rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
-	$dl_path/gwas_meta/${mat_file}.sorted.vars \
-	$dl_path/gwas_meta/${mat_file}.dl \
-	$dl_path/gwas_meta/${mat_file}.ref \
-	$dl_path/gwas_meta/${mat_file}.orig 
+##rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
+##	$dl_path/gwas_meta/${mat_file}.sorted.vars \
+##	$dl_path/gwas_meta/${mat_file}.dl \
+##	$dl_path/gwas_meta/${mat_file}.ref \
+##	$dl_path/gwas_meta/${mat_file}.orig 
 }
 export -f process_url
 
