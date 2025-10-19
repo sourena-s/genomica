@@ -99,7 +99,7 @@ for pop in "${populations[@]}"; do
 	
 	if [[ $ncontrols == "NA" ]];then n_str="--N $ncases";else n_str="--N-cas $ncases --N-con $ncontrols";fi
 	
-	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 10000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --a1-inc --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
+	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 10000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
 
 	echo "Checking if munged sumstat file exists:"
 	ls $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
