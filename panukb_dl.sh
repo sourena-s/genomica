@@ -91,7 +91,7 @@ for pop in "${populations[@]}"; do
 	echo "Munging $dl_path/$pop/${mat_file}.z.$pop and variant file $dl_path/gwas_meta/${mat_file}.sorted.vars"
 	echo "chr pos a0 a1 rsid z p" > "$dl_path/$pop/${mat_file}.${pop}.tomunge"
 	paste -d" " "$var_catalogue_rsid" "$dl_path/$pop/${mat_file}.z.$pop" "$dl_path/$pop/${mat_file}.p.$pop" |awk '$6!="nan" && $7!="NA"{$7=(10 ** -($7));print $0;}' >> "$dl_path/$pop/${mat_file}.${pop}.tomunge"
-	module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
+##	module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
 	ldsc_bin=/home/ssoheili/software/ldsc/ldsc.py
 	munge_bin=/home/ssoheili/software/ldsc/munge_sumstats.py
 	ref_path=/home/ssoheili/genetic-data/genica/software/ldsc/ref
@@ -99,23 +99,29 @@ for pop in "${populations[@]}"; do
 	
 	if [[ $ncontrols == "NA" ]];then n_str="--N $ncases";else n_str="--N-cas $ncases --N-con $ncontrols";fi
 	
-	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 10000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
+	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 500000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
 
 	echo "Checking if munged sumstat file exists:"
 	ls $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 	echo "Proceeding to rG estimation.."
-	psy_array=("ASD" "ANX" "BIP" "MDD" "ADHD" "SCZ" "OCD" "PTSD" "ADDICTION" )
-	psy_gwases=$(for psy in "${psy_array[@]}";do echo -n ",${psy_path}/$psy/gwas.matched.ldsc.sumstats.gz";done)
+	psy_array=("AD" "ASD" "ANX" "BIP" "MDD" "ADHD" "SCZ" "OCD" "PTSD" "ADDICTION")
+	psy_gwases=$(for psy in "${psy_array[@]}";do echo -n ",${psy_path}/$psy/gwas.orig.sumstats.gz";done)
 	
-	$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/baselineLD. \
-                --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
-                --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
+##	$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/baselineLD. \
+##                --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
+##                --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
+
+$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/global/LDscore/LDscore. \
+	--frqfile-chr $ref_path/1000GP/global/1000G_Phase3_frq/1000G.EUR.QC. \
+	--w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
+        --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
 
         awk -vs=$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz '$1==s' $dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr.log | sed 's/.EUR.ldsc.sumstats.gz//g' > $dl_path/$pop/${mat_file}.${pop}.psy_rg
 
-	awk '{printf "%s ", $3} END {print ""}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " "  > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	echo "${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	awk '{print  $3}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " "  && echo >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
 	echo "${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
-	awk '{printf "%s ", $5} END {print ""}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " " >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
+	awk '{print $5}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " " && echo >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
 	fi
 
 	#Save z as h5

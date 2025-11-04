@@ -13,8 +13,12 @@ gwas_list <- c(
 		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ANX/Lokhammer2024/ANX_EUR',
 		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/MDD/CELL2025/pgc-mdd2025_Clin_eur_v3-49-24-11',
 		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/OCD/STROM2024/ocs2024obsessive-compulsive_symptoms_daner_STR_NTR_SfS_TwinsUK_strometal.with_logodds',
-	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/PTSD/Nievergelt2024/eur_ptsd_pcs_v4_aug3_2021'
+	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/PTSD/Nievergelt2024/eur_ptsd_pcs_v4_aug3_2021',
+		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/AD/Wightman_2021/PGCALZ2sumstatsExcluding23andMe.rsid'
 )
+
+gwas_list <- c( '/home/ssoheili/genetic-data/genica/gwas-databases/PSY/BIP_clinical/gwas',
+		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/BIP_community/gwas' )
 
 for (gwas_filepath in gwas_list) {
 
@@ -32,7 +36,7 @@ gwas_header <-read.table(gwas_header,header=F)[,2]
 colnames(gwas) <- gwas_header[1:ncol(gwas)] #last rows in .header file may be n_tot or other info
 gwas$chr <- as.character(gwas$chr)
 
-## matched_gwas <- snp_match(sumstats=gwas,info_snp=info_snp, strand_flip=FALSE, return_flip_and_rev = TRUE)
+#matched_gwas <- snp_match(sumstats=gwas,info_snp=info_snp, strand_flip=FALSE, return_flip_and_rev = TRUE)
 
 ## matched_gwas$matched_OR <- exp(matched_gwas$beta)
 
