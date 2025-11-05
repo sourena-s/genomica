@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/gwas_download_table.reformat.B
 input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B 
-input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B.16test 
+#input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B.16test 
 
 NPROC=$2
 if [ $NPROC == "" ];then NPROC=`nproc --all`;fi
@@ -35,6 +35,7 @@ if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
     ncontrols=$3
     mat_file=${url##*sumstats_flat_files/}
     mat_file=${mat_file%.tsv.bgz*}
+    mat_file="${mat_file//[^a-zA-Z0-9_]/_}"
 
     echo "Source URL: $url" 
     echo "Saving to ${mat_file}.dl"
@@ -84,58 +85,58 @@ for pop in "${populations[@]}"; do
         ' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.z.$pop"
 
 	if [[ "$pop" == "EUR" ]];then 
-	####run ldsc munge and calculate corr with PSY
+	####run ldsc munge and calculate corr with PSY GWASes
 	echo "Processing $pop: eur_p_col=$eur_p_col +1"
 	awk -F' ' -v p=$((eur_p_col+1)) '{print $p}' "$dl_path/gwas_meta/${mat_file}.ref" > "$dl_path/$pop/${mat_file}.p.$pop"
 
 	echo "Munging $dl_path/$pop/${mat_file}.z.$pop and variant file $dl_path/gwas_meta/${mat_file}.sorted.vars"
 	echo "chr pos a0 a1 rsid z p" > "$dl_path/$pop/${mat_file}.${pop}.tomunge"
 	paste -d" " "$var_catalogue_rsid" "$dl_path/$pop/${mat_file}.z.$pop" "$dl_path/$pop/${mat_file}.p.$pop" |awk '$6!="nan" && $7!="NA"{$7=(10 ** -($7));print $0;}' >> "$dl_path/$pop/${mat_file}.${pop}.tomunge"
-##	module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
+#	module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
 	ldsc_bin=/home/ssoheili/software/ldsc/ldsc.py
 	munge_bin=/home/ssoheili/software/ldsc/munge_sumstats.py
 	ref_path=/home/ssoheili/genetic-data/genica/software/ldsc/ref
 	psy_path=/home/ssoheili/genetic-data/genica/gwas-databases/PSY
-	
+	py2_path=/home/ssoheili/.conda/envs/ldsc/bin/python
 	if [[ $ncontrols == "NA" ]];then n_str="--N $ncases";else n_str="--N-cas $ncases --N-con $ncontrols";fi
 	
-	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 500000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
+$py2_path	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_str --chunksize 500000 --merge-alleles ${ref_path}/w_hm3.snplist --p p --snp rsid --a1 a1 --a2 a0 --signed-sumstat z,0 --out "$dl_path/$pop/${mat_file}.${pop}.ldsc"
 
 	echo "Checking if munged sumstat file exists:"
 	ls $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
 	echo "Proceeding to rG estimation.."
-	psy_array=("AD" "ASD" "ANX" "BIP" "MDD" "ADHD" "SCZ" "OCD" "PTSD" "ADDICTION")
+	psy_array=("AD" "ASD" "ANX" "BIP_meta_2025" "BIP_clinical" "BIP_community" "MDD" "ADHD" "SCZ" "OCD" "PTSD" "ADDICTION")
 	psy_gwases=$(for psy in "${psy_array[@]}";do echo -n ",${psy_path}/$psy/gwas.orig.sumstats.gz";done)
 	
 ##	$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/baselineLD. \
 ##                --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
 ##                --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
 
-$ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/global/LDscore/LDscore. \
+$py2_path $ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/global/LDscore/LDscore. \
 	--frqfile-chr $ref_path/1000GP/global/1000G_Phase3_frq/1000G.EUR.QC. \
 	--w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
         --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
 
-        awk -vs=$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz '$1==s' $dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr.log | sed 's/.EUR.ldsc.sumstats.gz//g' > $dl_path/$pop/${mat_file}.${pop}.psy_rg
+        awk -vs=$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz '$1==s' $dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr.log | sed 's/.EUR.ldsc.sumstats.gz//g'| awk '{$1=$1}1' OFS=' ' > $dl_path/$pop/${mat_file}.${pop}.psy_rg
 
-	echo "${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
-	awk '{print  $3}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " "  && echo >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
-	echo "${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
-	awk '{print $5}' $dl_path/$pop/${mat_file}.${pop}.psy_rg|tr "\n" " " && echo >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
+	echo "Phenotype ${psy_array[@]}" > $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	cp $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
+	echo -e "${mat_file} $(awk -F' ' '{print  $3}' "$dl_path/$pop/${mat_file}.${pop}.psy_rg"|tr "\n" " ")\n" >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.rho
+	echo -e "${mat_file} $(awk -F' ' '{print $5}' "$dl_path/$pop/${mat_file}.${pop}.psy_rg"|tr "\n" " ")\n" >> $dl_path/$pop/${mat_file}.${pop}.psy_rg.z
 	fi
 
 	#Save z as h5
     $python_bin /home/ssoheili/genomica-code/panukb_dl_np_compress.py "$dl_path/$pop/${mat_file}.z.$pop"
     
-  ##  rm -rf $dl_path/$pop/${mat_file}.z.$pop $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz
+     rm -rf $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz $dl_path/$pop/${mat_file}.z.$pop 
 
     fi
 done
-##rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
-##	$dl_path/gwas_meta/${mat_file}.sorted.vars \
-##	$dl_path/gwas_meta/${mat_file}.dl \
-##	$dl_path/gwas_meta/${mat_file}.ref \
-##	$dl_path/gwas_meta/${mat_file}.orig 
+rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
+	$dl_path/gwas_meta/${mat_file}.sorted.vars \
+	$dl_path/gwas_meta/${mat_file}.dl \
+	$dl_path/gwas_meta/${mat_file}.ref \
+	$dl_path/gwas_meta/${mat_file}.orig 
 }
 export -f process_url
 
