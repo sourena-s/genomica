@@ -12,7 +12,7 @@ array_id=$1
 start_row=$(echo "( $array_id * $NPROC ) + 1"|bc) #inclusief
 end_row=$(echo "( $array_id + 1) * $NPROC"|bc) #inclusief
 
-echo "Received job array index $array_id corresponding to rows >= $start_row and < $end_row"
+echo "Received job array index $array_id corresponding to rows >= $start_row and <= $end_row"
 
 export OMP_PLACES cores
 export OMP_PROC_BIND true
@@ -36,6 +36,7 @@ if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
     mat_file=${url##*sumstats_flat_files/}
     mat_file=${mat_file%.tsv.bgz*}
     mat_file="${mat_file//[^a-zA-Z0-9_]/_}"
+    echo "Phenotype_ID: $mat_file"
 
     echo "Source URL: $url" 
     echo "Saving to ${mat_file}.dl"
@@ -50,7 +51,7 @@ if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
     join -a1 -j1 "$var_catalogue" "$dl_path/gwas_meta/${mat_file}.sorted" > "$dl_path/gwas_meta/${mat_file}.ref" #in reference catalogue table
     cat "$dl_path/gwas_meta/${mat_file}.sorted" |cut -d$'\t' -f1 > "$dl_path/gwas_meta/${mat_file}.sorted.vars"
 
-populations=("meta" "meta_hq" "AFR" "CSA" "AMR" "EAS" "EUR" "MID")
+#populations=("meta" "meta_hq" "AFR" "CSA" "AMR" "EAS" "EUR" "MID")
 populations=("EUR")
 
 for pop in "${populations[@]}"; do
@@ -112,6 +113,11 @@ $py2_path	$munge_bin --sumstats "$dl_path/$pop/${mat_file}.${pop}.tomunge" $n_st
 ##                --w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
 ##                --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.psy.corr"
 
+$py2_path $ldsc_bin --h2 "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz" --ref-ld-chr $ref_path/1000GP/global/LDscore/LDscore. \
+	--frqfile-chr $ref_path/1000GP/global/1000G_Phase3_frq/1000G.EUR.QC. \
+	--w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
+        --out "$dl_path/$pop/${mat_file}.${pop}.ldsc.h2"
+
 $py2_path $ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_gwases" --ref-ld-chr $ref_path/1000GP/global/LDscore/LDscore. \
 	--frqfile-chr $ref_path/1000GP/global/1000G_Phase3_frq/1000G.EUR.QC. \
 	--w-ld-chr $ref_path/1000GP/1000G_Phase3_weights_hm3_no_MHC/weights.hm3_noMHC. \
@@ -127,12 +133,13 @@ $py2_path $ldsc_bin --rg "$dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz$psy_
 
 	#Save z as h5
     $python_bin /home/ssoheili/genomica-code/panukb_dl_np_compress.py "$dl_path/$pop/${mat_file}.z.$pop"
-    
+
+
      rm -rf $dl_path/$pop/${mat_file}.${pop}.tomunge $dl_path/$pop/${mat_file}.p.$pop $dl_path/$pop/${mat_file}.${pop}.ldsc.sumstats.gz $dl_path/$pop/${mat_file}.z.$pop 
 
     fi
 done
-rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
+ rm -rf  $dl_path/gwas_meta/${mat_file}.sorted \
 	$dl_path/gwas_meta/${mat_file}.sorted.vars \
 	$dl_path/gwas_meta/${mat_file}.dl \
 	$dl_path/gwas_meta/${mat_file}.ref \

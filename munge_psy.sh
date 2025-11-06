@@ -11,8 +11,8 @@ ref_path=/home/ssoheili/genetic-data/genica/software/ldsc/ref
 info_str="--info impinfo" 
 
 #for trait in PTSD ASD ADDICTION ANX BIP OCD MDD ADHD SCZ AD;do
-for trait in BIP_clinical BIP_community;do
-#for trait in AD;do
+#for trait in BIP_clinical BIP_community;do
+for trait in AD;do
 
 case "$trait" in
 	"ADDICTION") n_str="--N 1025550"
@@ -55,7 +55,6 @@ esac
 	##--overlap-annot UKBB.EUR.25LDMS \
 
 done
-
 
 
 psy_path=/home/ssoheili/genetic-data/genica/gwas-databases/PSY
