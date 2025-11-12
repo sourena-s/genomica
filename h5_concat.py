@@ -6,8 +6,8 @@ import pandas as pd
 import gc
 
 list_path = "all_h5.txt"
-h5_base_path = "/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/sumstats/EUR/" 
-var_catalogue_file = '/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid.txt'
+h5_base_path = "/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/sumstats/EUR/" 
+var_catalogue_file = '/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid.txt'
 
 with open(list_path) as f:
     files = [os.path.join(h5_base_path, line.strip()) for line in f if line.strip()]

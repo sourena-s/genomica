@@ -2,23 +2,26 @@
 
 library('bigsnpr')
 #snp_table <- '/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst'
-snp_table <- '/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid'
+base_path <- '/projects/0/einf2700/sourena/genica-2025/gwas-databases'
+
+snp_table <- paste0(base_path, '/panukbb/full_variant_qc_metrics.sorted.sst.rsid')
 
 gwas_list <- c(
-	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ADDICTION/Hatoum2023AddictionEuropean', 
-	        '/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ASD/iPSYCH-PGC_ASD_Nov2017_with_logodds',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/SCZ/Trubetskoy2022/PGC3_SCZ_wave3.european.autosome.public.v3',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ADHD/DEMONTIS2023/ADHD2022_iPSYCH_deCODE_PGC.meta.with_logodds',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/BIP/Oconnell2025/bip2024_eur_no23andMe.with_logodds',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/ANX/Lokhammer2024/ANX_EUR',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/MDD/CELL2025/pgc-mdd2025_Clin_eur_v3-49-24-11',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/OCD/STROM2024/ocs2024obsessive-compulsive_symptoms_daner_STR_NTR_SfS_TwinsUK_strometal.with_logodds',
-	  	'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/PTSD/Nievergelt2024/eur_ptsd_pcs_v4_aug3_2021',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/AD/Wightman_2021/PGCALZ2sumstatsExcluding23andMe.rsid'
+	  	'ADDICTION/Hatoum2023AddictionEuropean', 
+	        'ASD/iPSYCH-PGC_ASD_Nov2017_with_logodds',
+		'SCZ/Trubetskoy2022/PGC3_SCZ_wave3.european.autosome.public.v3',
+		'ADHD/DEMONTIS2023/ADHD2022_iPSYCH_deCODE_PGC.meta.with_logodds',
+		'BIP_meta_2025/Oconnell2025/bip2024_eur_no23andMe.with_logodds',
+		'BIP_clinical/gwas',
+		'BIP_community/gwas',
+		'ANX/Lokhammer2024/ANX_EUR',
+		'MDD/CELL2025/pgc-mdd2025_Clin_eur_v3-49-24-11',
+		'OCD/STROM2024/ocs2024obsessive-compulsive_symptoms_daner_STR_NTR_SfS_TwinsUK_strometal.with_logodds',
+	  	'PTSD/Nievergelt2024/eur_ptsd_pcs_v4_aug3_2021',
+		'AD/Wightman_2021/PGCALZ2sumstatsExcluding23andMe.rsid'
 )
 
-gwas_list <- c( '/home/ssoheili/genetic-data/genica/gwas-databases/PSY/BIP_clinical/gwas',
-		'/home/ssoheili/genetic-data/genica/gwas-databases/PSY/BIP_community/gwas' )
+gwas_list <- paste0(base_path,'/PSY/',gwas_list)
 
 for (gwas_filepath in gwas_list) {
 

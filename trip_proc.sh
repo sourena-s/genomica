@@ -13,10 +13,11 @@ function connected(a, b) {
   return (a ~ nijmegen && b ~ nijmegen)
 }
 
-# Keep at most 2 Bus trips in Nijmegen per day
+# Keep at most 3 Bus trips in Nijmegen per day
+# one round-trip + possible one evening trip (for next day)
 $10 ~ /Bus/ && connected($3, $5) {
   date = $1
-  if (count[date] < 2) {
+  if (count[date] < 3) {
           cost = $6
   gsub(/[^0-9,]/,"",cost)
   gsub(",",".",cost)
@@ -42,44 +43,52 @@ function to_minutes(t) {
   from = $3
   to   = $5
 
-  # Consider only Nijmegen ↔ Arnhem Centraal train rides
-  if ((from ~ /Nijmegen/ && to ~ /Arnhem Centraal/) ||
-      (from ~ /Arnhem Centraal/ && to ~ /Nijmegen/)) {
-
-    # Case 1: Nijmegen → Arnhem Centraal happened after 17:00 → store temporarily
-    if (from ~ /Nijmegen/ && to ~ /Arnhem Centraal/ && to_minutes(time) >= 17*60) {
-            cost = $6
-  gsub(/[^0-9,]/,"",cost)
-  gsub(",",".",cost)
-  $6 = "€" cost
-      evening_trip[date] = $0
-      next
-    }
-
-    # Case 2: Arnhem → Nijmegen after 17:00 → cancel any temporary evening trip above
-    if (from ~ /Arnhem Centraal/ && to ~ /Nijmegen/) {
-      delete evening_trip[date]
-    }
-
-    # Case 3: regular trip to work - print if one per date
-    if (count[date] < 2) {
-            cost = $6
-  gsub(/[^0-9,]/,"",cost)
-  gsub(",",".",cost)
-  $6 = "€" cost
-      print
-      count[date]++
-    }
-  }
+# Case 1: Nijmegen -> Arnhem after 17:00 -> store temporarily
+if (from ~ /Nijmegen/ && to ~ /Arnhem Centraal/ && to_minutes(time) >= 17*60) {
+    evening_trip[date, time] = $0
+    next
 }
-END {
-  # After processing all lines, print any evening trip not canceled by a return to Arnhem after 17:00
-  for (d in evening_trip) {
-    if (count[d] < 2) {
-      print evening_trip[d]
-      count[d]++
+
+# Case 2: Arnhem -> Nijmegen after 17:00 -> store
+if (from ~ /Arnhem Centraal/ && to ~ /Nijmegen/ && to_minutes(time) >= 17*60) {
+    arnhem_trip[date, time] = $0
+    next
+}
+
+# Case 3: regular trips (before 17:00) - print normally
+if (to_minutes(time) < 17*60 && count[date] < 3) {
+    cost = $6
+    gsub(/[^0-9,]/,"",cost)
+    gsub(",",".",cost)
+    $6 = "€" cost
+    print
+    count[date]++
+}
+
+END 
+{
+    # Print evening Nijmegen->Arnhem trips only if no later trip exists
+    for (key in evening_trip) {
+        split(key, arr, SUBSEP)
+        d = arr[1]; t = arr[2]
+
+        later_trip_exists = 0
+        for (akey in evening_trip) {
+            split(akey, aarr, SUBSEP)
+            if (aarr[1] == d && aarr[2] > t) {
+                later_trip_exists = 1
+                break
+            }
+        }
+
+        if (!later_trip_exists) {
+            print evening_trip[key]
+            count[d]++
+        }
     }
-  }
+
+    # Optionally print Arnhem->Nijmegen evening trips if needed
+    # for (key in arnhem_trip) print arnhem_trip[key]
 }
 ' data.csv >> trips.txt
 

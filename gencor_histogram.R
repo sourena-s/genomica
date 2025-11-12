@@ -4,7 +4,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-df <-read.table('~/genetic-data/genica/gwas-databases/panukbb/sumstats/pheno_psy_gencor.rho',header=T)
+df <-read.table('/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/sumstats/pheno_psy_gencor.rho',header=T)
 ##df <-read.table('~/genetic-data/genica/gwas-databases/panukbb/sumstats/pheno_psy_gencor.z',header=T)
 
 df_long <- df %>%

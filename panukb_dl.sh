@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/gwas_download_table.reformat.B
-input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B 
+#input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/gwas_download_table.reformat.B
+#input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B 
 #input_gwas_list=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B.16test 
+input_gwas_list=/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/phenotype_manifest.proc.B 
+
 
 NPROC=$2
 if [ $NPROC == "" ];then NPROC=`nproc --all`;fi
@@ -25,9 +27,9 @@ module load Python/3.12.3-GCCcore-13.3.0
 # download, unzip, process
 process_url() {
 python_bin=python3 # which python? use anaconda?
-dl_path=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/sumstats
-var_catalogue=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted
-var_catalogue_rsid=/home/ssoheili/genetic-data/genica/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid.txt
+dl_path=/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/sumstats
+var_catalogue=/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/full_variant_qc_metrics.sorted
+var_catalogue_rsid=/projects/0/einf2700/sourena/genica-2025/gwas-databases/panukbb/full_variant_qc_metrics.sorted.sst.rsid.txt
 if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
 
     url=$1
@@ -96,8 +98,8 @@ for pop in "${populations[@]}"; do
 #	module load 2025; module load Anaconda3/2025.06-1;source activate ldsc
 	ldsc_bin=/home/ssoheili/software/ldsc/ldsc.py
 	munge_bin=/home/ssoheili/software/ldsc/munge_sumstats.py
-	ref_path=/home/ssoheili/genetic-data/genica/software/ldsc/ref
-	psy_path=/home/ssoheili/genetic-data/genica/gwas-databases/PSY
+	ref_path=/projects/0/einf2700/sourena/software/ldsc/ref
+	psy_path=/projects/0/einf2700/sourena/genica-2025/gwas-databases/PSY
 	py2_path=/home/ssoheili/.conda/envs/ldsc/bin/python
 	if [[ $ncontrols == "NA" ]];then n_str="--N $ncases";else n_str="--N-cas $ncases --N-con $ncontrols";fi
 	
