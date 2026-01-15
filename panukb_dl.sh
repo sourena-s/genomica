@@ -50,7 +50,7 @@ if [ ! -d "$dl_path/gwas_meta" ];then mkdir -p "$dl_path/gwas_meta";fi
     head -n 1 "$dl_path/gwas_meta/${mat_file}.orig" |tr "\t" "\n" > "$header_file"
     echo "nrows $(cat "$dl_path/gwas_meta/${mat_file}.orig" |wc -l)" >> "$header_file"
     awk -F$'\t' 'NR>1{print $1"_"$2"_"$3"_"$4"\t"$0}' "$dl_path/gwas_meta/${mat_file}.orig" |LC_ALL=C sort -t$'\t' -k1,1 > "$dl_path/gwas_meta/${mat_file}.sorted"
-    join -a1 -j1 "$var_catalogue" "$dl_path/gwas_meta/${mat_file}.sorted" > "$dl_path/gwas_meta/${mat_file}.ref" #in reference catalogue table
+    LC_ALL=C join -a1 -j1 "$var_catalogue" "$dl_path/gwas_meta/${mat_file}.sorted" > "$dl_path/gwas_meta/${mat_file}.ref" #in reference catalogue table
     cat "$dl_path/gwas_meta/${mat_file}.sorted" |cut -d$'\t' -f1 > "$dl_path/gwas_meta/${mat_file}.sorted.vars"
 
 #populations=("meta" "meta_hq" "AFR" "CSA" "AMR" "EAS" "EUR" "MID")
