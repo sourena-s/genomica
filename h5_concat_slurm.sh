@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --partition=fat_rome
+#SBATCH --partition=fat_genoa
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=940G
+#SBATCH --mem=1440G
 #SBATCH --time=72:00:00
 
 module load 2024

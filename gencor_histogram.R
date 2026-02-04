@@ -16,8 +16,7 @@ df_long <- df %>%
 
 ggplot(df_long, aes(x = value)) +
   geom_histogram(bins = 50, fill = "steelblue", color = "black", na.rm = TRUE) +
-  geom_vline(xintercept = 0, color = "red", linetype = "dashed") +
+  geom_vline(xintercept = 0, color = "grey", linetype = "dashed") + geom_vline(xintercept = 0.3, color = "red", linetype = "dashed") +  geom_vline(xintercept = -0.3, color = "red", linetype = "dashed") +
   facet_wrap(~ biomarker, scales = "free") +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
