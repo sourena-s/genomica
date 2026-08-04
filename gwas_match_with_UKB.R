@@ -39,7 +39,7 @@ gwas_header <-read.table(gwas_header,header=F)[,2]
 colnames(gwas) <- gwas_header[1:ncol(gwas)] #last rows in .header file may be n_tot or other info
 gwas$chr <- as.character(gwas$chr)
 
-#matched_gwas <- snp_match(sumstats=gwas,info_snp=info_snp, strand_flip=FALSE, return_flip_and_rev = TRUE)
+matched_gwas <- snp_match(sumstats=gwas,info_snp=info_snp, strand_flip=FALSE, return_flip_and_rev = TRUE)
 
 ## matched_gwas$matched_OR <- exp(matched_gwas$beta)
 

@@ -1,0 +1,1 @@
+cat all_h5_rho_point5.txt |while read s;do s=${s%.z.EUR.h5}_tsv_bgz;echo $s;done|while read s;do cat ../genetic-data/genica/gwas-databases/panukbb/phenotype_manifest.proc.B|sed 's/-/_/g'|sed 's/|/_/g'|sed 's/\./_/g'|awk -vs=$(echo $s) -F"\t" '$11==s{print $2" "$3}';done|sed 's/ /_/g'|sed 's/\//_/g'|while read s;do echo ${s#*_};done > all_h5_rho_point5.pheno_text

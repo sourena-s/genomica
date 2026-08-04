@@ -21,19 +21,26 @@ export FSLOUTPUTTYPE=NIFTI2_GZ
 #melodic=/projects/0/genica/sourena/software/fsl/bin/melodic
 melodic=/home/ssoheili/.conda/envs/fsl-melodic/bin/melodic
 
-dim=50
+#Since I encountered disk quota I have moved the below files into the project path: /projects/0/einf2700/sourena/genica-2025/melodic_results/
 
-input_file=/home/ssoheili/genomica-code/matrix_4d_r2psy.nii.gz
+#for input_file in "/home/ssoheili/genomica-code/matrix_4d_r2psy.nii.gz" "/home/ssoheili/genomica-code/matrix_4d_manual_rpoint3.nii.gz";do
+for input_file in "/projects/0/einf2700/sourena/genica-2025/melodic_results/matrix_4d_hapmap_manual_traits.nii.gz" "/projects/0/einf2700/sourena/genica-2025/melodic_results/matrix_4d_hapmap_r2psy_traits.nii.gz" ;do
+#	for nl in tanh pow3 pow4;do
+	for nl in pow3;do
+		for dim in 20;do
+
+#input_file=/home/ssoheili/genomica-code/matrix_4d_r2psy.nii.gz
 #input_file=/home/ssoheili/genomica-code/matrix_4d_manual.nii.gz
 #input_file=/home/ssoheili/genomica-code/matrix_4d_manual_rpoint5.nii.gz
 #input_file=/home/ssoheili/genomica-code/matrix_4d_manual_rpoint3.nii.gz
 #input_file=/home/ssoheili/genomica-code/matrix_4d_manual_rpoint3_maf_1percent.nii.gz
 
-output_path=${input_file%.nii.gz}_ICA_dim_$dim
+output_path=${input_file%.nii.gz}_mergedmask_ICA_dim_${dim}_nl_$nl
  
 mkdir -p $output_path
 
 echo "Free memory in GB: $(free -g)"
 
-$melodic -i $input_file --update_mask -o $output_path --Oall --Opca -d $dim --nobet --no_mm -v --keep_meanvol --vn
+$melodic -i $input_file --nl=$nl --update_mask -o $output_path --Oall --Opca -d $dim --nobet --no_mm -v --keep_meanvol --vn
 
+done;done;done
